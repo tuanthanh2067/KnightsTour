@@ -17,6 +17,15 @@ public class MainTester extends JFrame {
         Manual.addActionListener(e -> {
             ChessBoard chessBoard = new ChessBoard(1);
         });
+
+        Random.addActionListener(e -> {
+            ChessBoard chessBoard = new ChessBoard(1);
+        });
+
+        Heuristic.addActionListener(e -> {
+            ChessBoard chessBoard = new ChessBoard(1);
+        });
+
         add(Manual);
         add(Random);
         add(Heuristic);

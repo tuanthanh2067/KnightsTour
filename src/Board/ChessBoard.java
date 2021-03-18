@@ -18,18 +18,32 @@ public class ChessBoard extends JFrame {
         mainChessBoard.setBounds(0, 0, boardSize.width, boardSize.height);
 
         add(mainChessBoard);
-        ArrayList<JPanel> cells = new ArrayList<>();
+        ArrayList<Cell> cells = new ArrayList<>();
+        int row = 0;
+        int col = 0;
         for (int i = 0; i < 64; i++) {
-            cells.add(new JPanel(new BorderLayout()));
-            mainChessBoard.add(cells.get(i));
-
-            int row = (i / 8) % 2;
-            if (row == 0) {
-                cells.get(i).setBackground(i % 2 == 0 ?  Color.black : Color.white);
-            } else {
-                cells.get(i).setBackground(i % 2 == 0 ?  Color.white : Color.black);
-
+            Cell cell;
+            if (col == 8) {
+                row++;
+                col = 0;
             }
+            if ((i / 8) % 2 == 0) {
+                if (i % 2 == 0) {
+                    cell = new Cell(Color.black, row, col);
+                } else {
+                    cell = new Cell(Color.white, row, col);
+                }
+            } else {
+                if (i % 2 == 0) {
+                    cell = new Cell(Color.white, row, col);
+                } else {
+                    cell = new Cell(Color.black, row, col);
+                }
+            }
+            col++;
+            cells.add(cell);
+            mainChessBoard.add(cells.get(i).get());
         }
     }
+
 }
