@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -11,6 +12,18 @@ import java.util.concurrent.TimeUnit;
 public class ChessBoard extends JFrame {
     static final int horizontal[] = {2, 1, -1, -2, -2, -1, 1, 2};
     static final int  vertical[] = {-1, -2, -2, -1, 1, 2, 2, 1};
+
+    static final int accessibilityRow[][] = {
+            {2, 3, 4, 4, 4, 4, 3, 2},
+            {3, 4, 6, 6, 6, 6, 4, 3},
+            {4, 6, 8, 8, 8, 8, 6, 4},
+            {4, 6, 8, 8, 8, 8, 6, 4},
+            {4, 6, 8, 8, 8, 8, 6, 4},
+            {4, 6, 8, 8, 8, 8, 6, 4},
+            {3, 4, 6, 6, 6, 6, 4, 3},
+            {2, 3, 4, 4, 4, 4, 3, 2}
+    };
+
 
     static int currentRow;
     static int currentCol;
@@ -70,17 +83,15 @@ public class ChessBoard extends JFrame {
         if (option == 1) {
             // option 1
             // empty
-
         } else if (option == 2) {
             noBrainAutoPlay();
+        } else if (option == 3) {
+            smartAutoPlay();
         }
-
-
     }
 
     static ArrayList<Integer> selectPossibleRoutes() {
         ArrayList<Integer> routes = new ArrayList<>();
-        int index = 0;
         for (int i = 0; i < 8; i++) {
             int possibleRow = currentRow + vertical[i];
             int possibleCol = currentCol + horizontal[i];
@@ -90,6 +101,17 @@ public class ChessBoard extends JFrame {
             }
         }
         return routes;
+    }
+
+    static boolean movable(ArrayList<Integer> routes) {
+        for (int i = 0; i < routes.size(); i = i + 2) {
+            int possibleRow = routes.get(i);
+            int possibleCol = routes.get(i + 1);
+            if (cells.get(possibleRow).get(possibleCol).getAccessible() && !cells.get(possibleRow).get(possibleCol).getSelected()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static void drawPossibleRoutes() {
@@ -142,6 +164,11 @@ public class ChessBoard extends JFrame {
         final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleAtFixedRate(() -> {
             ArrayList<Integer> possibleRoutes = selectPossibleRoutes();
+            if (!movable(possibleRoutes)) {
+                JOptionPane.showMessageDialog(null, "Out of available moves", "Message", JOptionPane.ERROR_MESSAGE);
+                executorService.shutdown();
+                return;
+            }
             int length = possibleRoutes.size() / 2;
             boolean cont = true;
             int random;
@@ -152,7 +179,6 @@ public class ChessBoard extends JFrame {
                 selectedRow = possibleRoutes.get(random * 2);
                 selectedCol = possibleRoutes.get(random * 2 + 1);
                 System.out.println("Sub Running");
-                System.out.println(random);
 
                 if (!cells.get(selectedRow).get(selectedCol).getSelected()
                         && cells.get(selectedRow).get(selectedCol).getAccessible())
@@ -167,10 +193,55 @@ public class ChessBoard extends JFrame {
             cells.get(selectedRow).get(selectedCol).setButtonTextToValue();
 
             updateCurrent(selectedRow, selectedCol);
-        }, 1, 1, TimeUnit.SECONDS);
+        }, 500, 200, TimeUnit.MILLISECONDS);
 
+    }
 
+    static void smartAutoPlay() {
+        final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+        executorService.scheduleAtFixedRate(() -> {
+            ArrayList<Integer> possibleRoutes = selectPossibleRoutes();
+            if (!movable(possibleRoutes)) {
+                JOptionPane.showMessageDialog(null, "Out of available moves", "Message", JOptionPane.ERROR_MESSAGE);
+                executorService.shutdown();
+                return;
+            }
 
+            // choose route to go
+            // this will run every time to select the least accessible
+            // find the lowest route
+            // move to that spot
+            // deduct the previous spot by 1
+            int index = -2;
+            int choseAccessibility = 9;
+            int selectedRow = 0;
+            int selectedCol = 0;
+            for (int i = 0; i < possibleRoutes.size(); i = i + 2) {
+                selectedRow = possibleRoutes.get(i);
+                selectedCol = possibleRoutes.get(i + 1);
+                if (!cells.get(selectedRow).get(selectedCol).getSelected()
+                        && cells.get(selectedRow).get(selectedCol).getAccessible()) {
+                    if (accessibilityRow[selectedRow][selectedCol] < choseAccessibility) {
+                        choseAccessibility = accessibilityRow[selectedRow][selectedCol];
+                        index = i;
+                        if (choseAccessibility == 2) break;
+                    }
+                }
+            }
 
+            if (index == -2) {
+                return;
+            }
+            int choseRow = possibleRoutes.get(index);
+            int choseCol = possibleRoutes.get(index + 1);
+            // simulate user's click
+            cells.get(choseRow).get(choseCol).setInaccessible();
+            cells.get(choseRow).get(choseCol).setSelected();
+            cells.get(choseRow).get(choseCol).setValue(Integer.toString(initialValue));
+            cells.get(choseRow).get(choseCol).setButtonTextToValue();
+
+            accessibilityRow[currentRow][currentCol]--;
+            updateCurrent(choseRow, choseCol);
+        }, 500, 100, TimeUnit.MILLISECONDS);
     }
 }

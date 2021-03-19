@@ -12,7 +12,8 @@ public class MainTester extends JFrame {
         super("Menu");
         JButton Manual = new JButton("Manual method");
         JButton Random = new JButton("Random method");
-        JButton Heuristic = new JButton("Heuristic method");
+        JButton Smart = new JButton("Smart method");
+        JButton All64Tours = new JButton("All 64 tours");
 
         Manual.addActionListener(e -> {
             ChessBoard chessBoard = new ChessBoard(1);
@@ -22,13 +23,17 @@ public class MainTester extends JFrame {
             ChessBoard chessBoard = new ChessBoard(2);
         });
 
-        Heuristic.addActionListener(e -> {
+        Smart.addActionListener(e -> {
             ChessBoard chessBoard = new ChessBoard(3);
+        });
+
+        All64Tours.addActionListener(e -> {
+            ChessBoard chessBoard = new ChessBoard(4);
         });
 
         add(Manual);
         add(Random);
-        add(Heuristic);
+        add(Smart);
 
     }
 
