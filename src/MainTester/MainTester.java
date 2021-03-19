@@ -19,11 +19,11 @@ public class MainTester extends JFrame {
         });
 
         Random.addActionListener(e -> {
-            ChessBoard chessBoard = new ChessBoard(1);
+            ChessBoard chessBoard = new ChessBoard(2);
         });
 
         Heuristic.addActionListener(e -> {
-            ChessBoard chessBoard = new ChessBoard(1);
+            ChessBoard chessBoard = new ChessBoard(3);
         });
 
         add(Manual);
