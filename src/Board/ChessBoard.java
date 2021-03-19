@@ -2,7 +2,11 @@ package Board;
 
 import javax.swing.*;
 import java.awt.*;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ChessBoard extends JFrame {
     static final int horizontal[] = {2, 1, -1, -2, -2, -1, 1, 2};
@@ -65,50 +69,62 @@ public class ChessBoard extends JFrame {
 
         if (option == 1) {
             // option 1
+            // empty
 
         } else if (option == 2) {
-
+            noBrainAutoPlay();
         }
 
 
     }
 
-    static void drawPossibleRoutes() {
+    static ArrayList<Integer> selectPossibleRoutes() {
+        ArrayList<Integer> routes = new ArrayList<>();
+        int index = 0;
         for (int i = 0; i < 8; i++) {
             int possibleRow = currentRow + vertical[i];
             int possibleCol = currentCol + horizontal[i];
-
             if (possibleRow >= 0 && possibleRow < 8 && possibleCol >= 0 && possibleCol < 8) {
-                Cell possibleCell = cells.get(possibleRow).get(possibleCol);
-                if (!possibleCell.getSelected()) {
-                    possibleCell.setAccessible();
-                    possibleCell.setAvailableColor();
-                    possibleCell.setValue(Integer.toString(initialValue));
-                }
+                routes.add(possibleRow);
+                routes.add(possibleCol);
+            }
+        }
+        return routes;
+    }
+
+    static void drawPossibleRoutes() {
+        ArrayList<Integer> possibleRoutes = selectPossibleRoutes();
+        for (int i = 0; i < possibleRoutes.size(); i = i + 2) {
+            int possibleRow = possibleRoutes.get(i);
+            int possibleCol = possibleRoutes.get(i + 1);
+            Cell possibleCell = cells.get(possibleRow).get(possibleCol);
+            if (!possibleCell.getSelected()) {
+                possibleCell.setAccessible();
+                possibleCell.setAvailableColor();
+                possibleCell.setValue(Integer.toString(initialValue));
             }
         }
     }
 
     static void removePossibleRoutes() {
-        for (int i = 0; i < 8; i++) {
-            int possibleRow = currentRow + vertical[i];
-            int possibleCol = currentCol + horizontal[i];
+        ArrayList<Integer> possibleRoutes = selectPossibleRoutes();
+        for (int i = 0; i < possibleRoutes.size(); i = i + 2) {
+            int possibleRow = possibleRoutes.get(i);
+            int possibleCol = possibleRoutes.get(i + 1);
 
-            if (possibleRow >= 0 && possibleRow < 8 && possibleCol >= 0 && possibleCol < 8) {
-                Cell possibleCell = cells.get(possibleRow).get(possibleCol);
-                possibleCell.setInaccessible();
-                if (possibleRow % 2 == 0) {
-                    if (possibleCol % 2 == 0) {
-                        possibleCell.setColorBlack();
-                    } else {
-                        possibleCell.setColorWhite();
-                    }
+            Cell possibleCell = cells.get(possibleRow).get(possibleCol);
+            possibleCell.setInaccessible();
+            if (possibleRow % 2 == 0) {
+                if (possibleCol % 2 == 0) {
+                    possibleCell.setColorBlack();
                 } else {
-                    if (possibleCol % 2 == 0) {
-                        possibleCell.setColorWhite();
-                    } else {
-                        possibleCell.setColorBlack();
-                    }
+                    possibleCell.setColorWhite();
+                }
+            } else {
+                if (possibleCol % 2 == 0) {
+                    possibleCell.setColorWhite();
+                } else {
+                    possibleCell.setColorBlack();
                 }
             }
         }
@@ -122,4 +138,39 @@ public class ChessBoard extends JFrame {
         drawPossibleRoutes();
     }
 
+    static void noBrainAutoPlay() {
+        final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+        executorService.scheduleAtFixedRate(() -> {
+            ArrayList<Integer> possibleRoutes = selectPossibleRoutes();
+            int length = possibleRoutes.size() / 2;
+            boolean cont = true;
+            int random;
+            int selectedRow = 0;
+            int selectedCol = 0;
+            while (cont) {
+                random = (int) (Math.floor(Math.random() * length));
+                selectedRow = possibleRoutes.get(random * 2);
+                selectedCol = possibleRoutes.get(random * 2 + 1);
+                System.out.println("Sub Running");
+                System.out.println(random);
+
+                if (!cells.get(selectedRow).get(selectedCol).getSelected()
+                        && cells.get(selectedRow).get(selectedCol).getAccessible())
+                    cont = false;
+            }
+
+            System.out.println("Main Running");
+            // simulate user's click
+            cells.get(selectedRow).get(selectedCol).setInaccessible();
+            cells.get(selectedRow).get(selectedCol).setSelected();
+            cells.get(selectedRow).get(selectedCol).setValue(Integer.toString(initialValue));
+            cells.get(selectedRow).get(selectedCol).setButtonTextToValue();
+
+            updateCurrent(selectedRow, selectedCol);
+        }, 1, 1, TimeUnit.SECONDS);
+
+
+
+
+    }
 }

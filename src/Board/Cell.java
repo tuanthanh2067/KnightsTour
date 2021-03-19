@@ -55,6 +55,10 @@ public class Cell {
         this.accessible = true;
     }
 
+    public boolean getAccessible() {
+        return this.accessible;
+    }
+
     public void setInaccessible() {
         this.accessible = false;
     }
