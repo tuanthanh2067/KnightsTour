@@ -232,12 +232,16 @@ public class ChessBoard extends JFrame {
                         answer.add(selectedRow);
                         answer.add(selectedCol);
                     }
-
                 }
             }
         }
 
+        if (answer.size() == 0) {
+            answer.add(possibleRoutes.get(0));
+            answer.add(possibleRoutes.get(1));
+        }
         return answer;
+
     }
 
     static void smartPlayFunc() {
@@ -281,7 +285,7 @@ public class ChessBoard extends JFrame {
         }
 
         ArrayList<Integer> returnNextMove = pickNextMoveForSmartPlayFunc(possibleNextMoves);
-
+        
         int choseRow = returnNextMove.get(0);
         int choseCol = returnNextMove.get(1);
         // simulate user's click
